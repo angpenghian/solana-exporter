@@ -47,8 +47,8 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Python Exporter (FastAPI)                                    │
-│ • Port 8080   • /metrics endpoint   • ~0.26s scrape time    │
-│ • 30+ metrics   • Environment config   • Error handling     │
+│ • Port 8080   • /metrics endpoint   • ~0.26s scrape time     │
+│ • 30+ metrics   • Environment config   • Error handling      │
 └─────────────────────────┬────────────────────────────────────┘
                           │
                           │ Scrape every 15s
@@ -62,7 +62,7 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Grafana (Visualization)                                      │
-│ • Port 3000   • 21-panel dashboard   • Color-coded alerts    │
+│ • Port 3000   • 26-panel dashboard   • Color-coded alerts    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -167,7 +167,7 @@ prometheus --config.file=prometheus/prometheus.yml --web.listen-address=":9090"
 ```bash
 # Run automated tests
 ./test_exporter.sh
-# Expected: ✓ All 9 tests passed
+# Expected: ✓ All 11 tests passed
 
 # Check skip rate
 curl -s http://localhost:8080/metrics | grep solana_validator_skip_rate_percent
@@ -231,7 +231,7 @@ solana-exporter/
 ├── exporter.py                        # Production Python exporter
 ├── requirements.txt                   # Python dependencies
 ├── .env.example                       # Configuration template
-├── test_exporter.sh                   # Automated test suite (9 tests)
+├── test_exporter.sh                   # Automated test suite (11 tests)
 ├── prometheus/
 │   └── prometheus.yml                 # Prometheus scrape config
 ├── grafana/
@@ -338,12 +338,14 @@ Automated test suite validates all critical functionality:
 **Test Coverage:**
 - ✅ Exporter responds to /health
 - ✅ Exporter exposes /metrics endpoint
-- ✅ Metrics include skip rate
-- ✅ Metrics include delinquency status
-- ✅ Metrics include identity balance
-- ✅ Metrics include vote balance
-- ✅ Metrics include active stake
-- ✅ Prometheus scrapes exporter successfully
+- ✅ Core metrics (epoch, slot height, TPS)
+- ✅ Validator metrics (identity balance, stake, delinquency)
+- ✅ SOL price and USD-converted balances
+- ✅ Validator client type detection
+- ✅ Skip rate calculation
+- ✅ Delinquency status check
+- ✅ Account balance thresholds
+- ✅ Scrape performance
 - ✅ Dashboard JSON is valid
 
 **Tested on Production Validator (Jito client):**

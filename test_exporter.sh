@@ -87,9 +87,24 @@ check_metric "solana_validator_identity_balance_sol" "Identity balance"
 check_metric "solana_validator_activated_stake_sol" "Activated stake"
 check_metric "solana_validator_delinquent" "Delinquency status"
 
-# Test 6: Skip rate metric (critical)
+# Test 6: SOL price and USD metrics
 echo ""
-echo "Test 6: Checking skip rate metric..."
+echo "Test 6: Checking SOL price and USD metrics..."
+
+check_metric "solana_sol_price_usd" "SOL price USD"
+check_metric "solana_validator_identity_balance_usd" "Identity balance USD"
+check_metric "solana_validator_vote_balance_usd" "Vote balance USD"
+check_metric "solana_validator_activated_stake_usd" "Activated stake USD"
+
+# Test 7: Client type metric
+echo ""
+echo "Test 7: Checking client type metric..."
+
+check_metric "solana_node_client_info" "Validator client type"
+
+# Test 8: Skip rate metric (critical)
+echo ""
+echo "Test 8: Checking skip rate metric..."
 
 if check_metric "solana_validator_skip_rate_percent" "Skip rate"; then
     SKIP_RATE=$(echo "$METRICS" | grep "^solana_validator_skip_rate_percent" | awk '{print $2}')
@@ -101,9 +116,9 @@ if check_metric "solana_validator_skip_rate_percent" "Skip rate"; then
     fi
 fi
 
-# Test 7: Delinquency check
+# Test 9: Delinquency check
 echo ""
-echo "Test 7: Checking delinquency status..."
+echo "Test 9: Checking delinquency status..."
 
 if echo "$METRICS" | grep -q "^solana_validator_delinquent"; then
     DELINQUENT=$(echo "$METRICS" | grep "^solana_validator_delinquent" | awk '{print $2}')
@@ -116,9 +131,9 @@ else
     warn "Delinquency metric not found"
 fi
 
-# Test 8: Balance checks
+# Test 10: Balance checks
 echo ""
-echo "Test 8: Checking account balances..."
+echo "Test 10: Checking account balances..."
 
 if echo "$METRICS" | grep -q "^solana_validator_identity_balance_sol"; then
     IDENTITY_BAL=$(echo "$METRICS" | grep "^solana_validator_identity_balance_sol" | awk '{print $2}')
@@ -138,9 +153,9 @@ if echo "$METRICS" | grep -q "^solana_validator_vote_balance_sol"; then
     fi
 fi
 
-# Test 9: Scrape performance
+# Test 11: Scrape performance
 echo ""
-echo "Test 9: Checking scrape performance..."
+echo "Test 11: Checking scrape performance..."
 
 if echo "$METRICS" | grep -q "^solana_exporter_scrape_duration_seconds"; then
     SCRAPE_TIME=$(echo "$METRICS" | grep "^solana_exporter_scrape_duration_seconds" | awk '{print $2}')
