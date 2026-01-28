@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Production exporter (recommended)
+  - job_name: "solana_validator"
+    scrape_timeout: 15s
+    static_configs:
+      - targets: ["127.0.0.1:8080"]
+        labels:
+          environment: "production"
+
+  # Legacy exporters (for backwards compatibility)
+  - job_name: "solana_exporter_v1"
+    scrape_timeout: 15s
+    static_configs:
+      - targets: ["127.0.0.1:8081"]
+        labels:
+          environment: "legacy"
+
+  - job_name: "solana_exporter_v2"
+    scrape_timeout: 15s
+    static_configs:
+      - targets: ["127.0.0.1:8082"]
+        labels:
+          environment: "legacy"
+
+  - job_name: "solana_exporter_complete"
+    scrape_timeout: 15s
+    static_configs:
+      - targets: ["127.0.0.1:8083"]
+        labels:
+          environment: "legacy"
