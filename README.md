@@ -46,22 +46,22 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Python Exporter (FastAPI)                                    │
-│ • Port 8080   • /metrics endpoint   • ~0.26s scrape time    │
-│ • 26+ metrics   • Environment config   • Error handling     │
+│ • Port 8080   • /metrics endpoint   • ~0.26s scrape time     │
+│ • 26+ metrics   • Environment config   • Error handling      │
 └─────────────────────────┬────────────────────────────────────┘
                           │
                           │ Scrape every 15s
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Prometheus (Time-Series Database)                            │
-│ • Port 9090   • Metric storage   • Alert evaluation         │
+│ • Port 9090   • Metric storage   • Alert evaluation          │
 └─────────────────────────┬────────────────────────────────────┘
                           │
                           │ Query metrics
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Grafana (Visualization)                                      │
-│ • Port 3000   • 21-panel dashboard   • Color-coded alerts   │
+│ • Port 3000   • 21-panel dashboard   • Color-coded alerts    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
