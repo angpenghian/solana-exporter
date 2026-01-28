@@ -55,14 +55,14 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Prometheus (Time-Series Database)                            │
-│ • Port 9090   • Metric storage   • Alert evaluation         │
+│ • Port 9090   • Metric storage   • Alert evaluation          │
 └─────────────────────────┬────────────────────────────────────┘
                           │
                           │ Query metrics
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Grafana (Visualization)                                      │
-│ • Port 3000   • 21-panel dashboard   • Color-coded alerts   │
+│ • Port 3000   • 21-panel dashboard   • Color-coded alerts    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
