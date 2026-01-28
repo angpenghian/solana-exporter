@@ -17,10 +17,11 @@ Without proper instrumentation, validators can become delinquent or underperform
 
 **Custom Prometheus exporter** that:
 - Works with any Solana validator client (Agave, Jito, Firedancer)
-- Exposes 26+ validator metrics in Prometheus format
+- Exposes 30+ validator metrics in Prometheus format
 - Calculates skip rate efficiently via `getBlockProduction` API (avoiding slow per-block polling)
 - Provides async RPC calls for sub-second scrape times
-- Includes production-ready Grafana dashboard with 21 panels
+- Includes production-ready Grafana dashboard with 26 panels
+- Real-time SOL/USD price tracking with USD-converted balances
 - Exports metrics compatible with standard alerting and visualization tools
 
 ## Why This Matters for Validator Operations
@@ -47,7 +48,7 @@ Without proper instrumentation, validators can become delinquent or underperform
 ┌──────────────────────────────────────────────────────────────┐
 │ Python Exporter (FastAPI)                                    │
 │ • Port 8080   • /metrics endpoint   • ~0.26s scrape time    │
-│ • 26+ metrics   • Environment config   • Error handling     │
+│ • 30+ metrics   • Environment config   • Error handling     │
 └─────────────────────────┬────────────────────────────────────┘
                           │
                           │ Scrape every 15s
@@ -76,10 +77,16 @@ Without proper instrumentation, validators can become delinquent or underperform
 
 ### Operational Metrics
 - Node health status (1=healthy, 0=down)
-- Validator software version
+- Validator software version and client type detection (Agave, Jito, Firedancer)
 - Epoch progress and slot tracking
 - Last vote slot and root slot
 - Commission rate
+
+### Price & USD Conversions
+- Real-time SOL/USD price (via CoinGecko API)
+- Identity balance in USD
+- Vote account balance in USD
+- Active stake value in USD
 
 ### Network Context
 - Network TPS (transactions per second)
@@ -92,7 +99,7 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Last scrape timestamp
 - Build info and version
 
-**Total**: 26+ metrics in Prometheus text format
+**Total**: 30+ metrics in Prometheus text format
 
 ## Validator Client Compatibility
 
@@ -198,6 +205,9 @@ curl 'http://localhost:9090/api/v1/query?query=solana_validator_skip_rate_percen
 | `solana_validator_commission_percent` | Commission rate |
 | `solana_validator_identity_balance_sol` | Identity account balance |
 | `solana_validator_vote_balance_sol` | Vote account balance |
+| `solana_validator_identity_balance_usd` | Identity balance in USD |
+| `solana_validator_vote_balance_usd` | Vote balance in USD |
+| `solana_validator_activated_stake_usd` | Active stake in USD |
 
 ### Node & Network Metrics
 
@@ -205,6 +215,8 @@ curl 'http://localhost:9090/api/v1/query?query=solana_validator_skip_rate_percen
 |--------|-------------|
 | `solana_node_health` | Health status (1=healthy) |
 | `solana_node_version_info` | Software version |
+| `solana_node_client_info` | Client type (Agave, Jito, Firedancer) |
+| `solana_sol_price_usd` | Current SOL/USD price |
 | `solana_epoch_number` | Current epoch |
 | `solana_epoch_progress_percent` | Epoch completion (0-100%) |
 | `solana_network_tps` | Network transactions per second |
@@ -223,7 +235,7 @@ solana-exporter/
 ├── prometheus/
 │   └── prometheus.yml                 # Prometheus scrape config
 ├── grafana/
-│   └── solana-validator-overview.json # Production dashboard (21 panels)
+│   └── solana-validator-overview.json # Production dashboard (26 panels)
 └── docs/                              # Detailed guides (gitignored)
     ├── QUICKSTART.md
     ├── GRAFANA_SETUP.md

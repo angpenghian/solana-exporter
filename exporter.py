@@ -53,6 +53,9 @@ class Config:
     TIMEOUT: float = float(os.getenv("SOLANA_RPC_TIMEOUT", "10.0"))
     MAX_CONNECTIONS: int = int(os.getenv("SOLANA_MAX_CONNECTIONS", "20"))
 
+    # SOL price (CoinGecko free API)
+    COINGECKO_URL: str = "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+
     @classmethod
     def validate(cls):
         """Validate required configuration"""
@@ -140,6 +143,27 @@ def extract_result(response: Dict[str, Any]) -> Any:
         return response["result"]
     return None
 
+async def fetch_sol_price() -> Optional[float]:
+    """Fetch current SOL/USD price from CoinGecko"""
+    try:
+        response = await http_client.get(Config.COINGECKO_URL)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("solana", {}).get("usd")
+    except Exception as e:
+        logger.warning(f"Failed to fetch SOL price: {e}")
+        return None
+
+def detect_client_type(version_str: str) -> str:
+    """Detect validator client type from version string"""
+    version_lower = version_str.lower()
+    if "jito" in version_lower:
+        return "Jito"
+    elif "firedancer" in version_lower or "fd_" in version_lower:
+        return "Firedancer"
+    else:
+        return "Agave"
+
 # ------------------------
 # METRICS COLLECTION
 # ------------------------
@@ -193,7 +217,10 @@ async def fetch_all_metrics() -> Dict[str, Any]:
         )
         call_names.append("block_production")
 
-    # Execute all calls concurrently
+    # Execute all RPC calls + SOL price fetch concurrently
+    rpc_calls.append(fetch_sol_price())
+    call_names.append("sol_price")
+
     results = await asyncio.gather(*rpc_calls, return_exceptions=True)
 
     # Map results to names
@@ -202,6 +229,9 @@ async def fetch_all_metrics() -> Dict[str, Any]:
         if isinstance(result, Exception):
             logger.error(f"Exception fetching {name}: {result}")
             metrics[name] = None
+        elif name == "sol_price":
+            # sol_price returns a float directly, not an RPC response
+            metrics[name] = result
         else:
             metrics[name] = extract_result(result)
 
@@ -241,7 +271,9 @@ def format_prometheus_metrics(data: Dict[str, Any]) -> str:
     if data.get("version"):
         version_info = data["version"]
         version_str = version_info.get("solana-core", "unknown")
+        client_type = detect_client_type(version_str)
         add_metric("solana_node_version_info", 1, "Solana version info", {"version": version_str})
+        add_metric("solana_node_client_info", 1, "Validator client type", {"client": client_type})
 
     # ============================================
     # EPOCH & SLOT INFO
@@ -368,6 +400,28 @@ def format_prometheus_metrics(data: Dict[str, Any]) -> str:
                 # Calculate skip rate
                 skip_rate = (blocks_skipped / leader_slots * 100) if leader_slots > 0 else 0
                 add_metric("solana_validator_skip_rate_percent", skip_rate, "Skip rate percentage")
+
+    # ============================================
+    # SOL PRICE & USD CONVERSIONS
+    # ============================================
+    sol_price = data.get("sol_price")
+    if sol_price is not None:
+        add_metric("solana_sol_price_usd", sol_price, "Current SOL price in USD")
+
+        # USD-converted balances
+        if data.get("identity_balance") and data["identity_balance"].get("value") is not None:
+            identity_sol = data["identity_balance"]["value"] / 1_000_000_000
+            add_metric("solana_validator_identity_balance_usd", identity_sol * sol_price, "Identity account balance in USD")
+
+        if data.get("vote_balance") and data["vote_balance"].get("value") is not None:
+            vote_sol = data["vote_balance"]["value"] / 1_000_000_000
+            add_metric("solana_validator_vote_balance_usd", vote_sol * sol_price, "Vote account balance in USD")
+
+        if data.get("vote_accounts"):
+            current = data["vote_accounts"].get("current", [])
+            if current and len(current) > 0:
+                stake_sol = current[0].get("activatedStake", 0) / 1_000_000_000
+                add_metric("solana_validator_activated_stake_usd", stake_sol * sol_price, "Active stake in USD")
 
     # ============================================
     # EXPORTER METADATA

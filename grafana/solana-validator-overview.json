@@ -69,7 +69,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 3,
         "x": 0,
         "y": 0
       },
@@ -86,7 +86,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -149,8 +149,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
+        "w": 3,
+        "x": 3,
         "y": 0
       },
       "id": 2,
@@ -166,7 +166,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -219,8 +219,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 3,
+        "x": 6,
         "y": 0
       },
       "id": 3,
@@ -233,7 +233,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
       "pluginVersion": "10.0.0",
@@ -276,7 +276,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 3,
         "x": 12,
         "y": 0
       },
@@ -337,8 +337,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 16,
+        "w": 3,
+        "x": 15,
         "y": 0
       },
       "id": 5,
@@ -354,7 +354,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -399,8 +399,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 20,
+        "w": 3,
+        "x": 18,
         "y": 0
       },
       "id": 6,
@@ -429,6 +429,126 @@
       ],
       "title": "Epoch Progress",
       "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Validator client type (Agave, Jito, Firedancer)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 0
+      },
+      "id": 22,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^client$/",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "solana_node_client_info",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "title": "Validator Client",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Current SOL/USD price from CoinGecko",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 0
+      },
+      "id": 23,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "solana_sol_price_usd",
+          "refId": "A"
+        }
+      ],
+      "title": "SOL Price",
+      "type": "stat"
     },
     {
       "datasource": {
@@ -479,7 +599,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
       "pluginVersion": "10.0.0",
@@ -545,7 +665,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": true,
+        "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
       "pluginVersion": "10.0.0",
@@ -606,7 +726,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -666,7 +786,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -680,6 +800,186 @@
         }
       ],
       "title": "Commission",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Identity account balance in USD",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "id": 24,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "solana_validator_identity_balance_usd",
+          "refId": "A"
+        }
+      ],
+      "title": "Identity Balance (USD)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Vote account balance in USD",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 9
+      },
+      "id": 25,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "solana_validator_vote_balance_usd",
+          "refId": "A"
+        }
+      ],
+      "title": "Vote Balance (USD)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Active stake value in USD",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 9
+      },
+      "id": 26,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "solana_validator_activated_stake_usd",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Stake (USD)",
       "type": "stat"
     },
     {
@@ -711,7 +1011,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 9
+        "y": 12
       },
       "id": 11,
       "options": {
@@ -726,7 +1026,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -771,7 +1071,7 @@
         "h": 4,
         "w": 4,
         "x": 4,
-        "y": 9
+        "y": 12
       },
       "id": 12,
       "options": {
@@ -786,7 +1086,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -839,7 +1139,7 @@
         "h": 4,
         "w": 4,
         "x": 8,
-        "y": 9
+        "y": 12
       },
       "id": 13,
       "options": {
@@ -854,7 +1154,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -899,7 +1199,7 @@
         "h": 4,
         "w": 6,
         "x": 12,
-        "y": 9
+        "y": 12
       },
       "id": 14,
       "options": {
@@ -914,7 +1214,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -959,7 +1259,7 @@
         "h": 4,
         "w": 6,
         "x": 18,
-        "y": 9
+        "y": 12
       },
       "id": 15,
       "options": {
@@ -974,7 +1274,7 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -1057,7 +1357,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 13
+        "y": 16
       },
       "id": 16,
       "options": {
@@ -1141,7 +1441,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 13
+        "y": 16
       },
       "id": 17,
       "options": {
@@ -1242,7 +1542,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 24
       },
       "id": 18,
       "options": {
@@ -1335,7 +1635,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 24
       },
       "id": 19,
       "options": {
@@ -1419,7 +1719,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 29
+        "y": 32
       },
       "id": 20,
       "options": {
@@ -1521,7 +1821,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 32
       },
       "id": 21,
       "options": {
