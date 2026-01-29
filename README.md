@@ -204,6 +204,8 @@ SOLANA_RPC_TIMEOUT=10.0                     # RPC timeout in seconds
 SOLANA_MAX_CONNECTIONS=20                   # Max concurrent connections
 ```
 
+**Note:** The exporter auto-loads `.env` files using `python-dotenv`. Just create a `.env` file and run - no need to `source .env` or manually export variables.
+
 ## Quick Start
 
 ### Prerequisites
@@ -219,11 +221,11 @@ cd solana-exporter
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure
+# Configure (exporter auto-loads .env file)
 cp .env.example .env
-# Edit .env with your SOLANA_RPC_URL, SOLANA_IDENTITY_KEY, SOLANA_VOTE_KEY
+# Edit .env with your values - no need to 'source' or 'export'
 
-# Run
+# Run (reads .env automatically)
 python3 -m uvicorn exporter:app --host 0.0.0.0 --port 8080
 
 # Verify
