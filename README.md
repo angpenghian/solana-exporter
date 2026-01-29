@@ -178,21 +178,32 @@ prometheus --config.file=prometheus/prometheus.yml --web.listen-address=":9090"
 
 ### 3. Import Grafana Dashboard
 
+**Install Grafana:**
 ```bash
-# macOS: brew install grafana && brew services start grafana
-# Linux: https://grafana.com/grafana/download
+# macOS
+brew install grafana && brew services start grafana
+
+# Linux (Ubuntu/Debian)
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+sudo apt-get update && sudo apt-get install grafana
+sudo systemctl start grafana-server
 ```
 
 **Install Infinity plugin** (required for block production table):
 1. Open http://localhost:3000 → Administration → Plugins
 2. Search "Infinity" → Click Install
-3. Restart Grafana: `brew services restart grafana`
+3. Restart Grafana: `brew services restart grafana` (or `sudo systemctl restart grafana-server`)
 
 **Add data sources:**
 1. Prometheus: http://localhost:9090
 2. Infinity: URL = http://localhost:8080
 
-**Import dashboard:** grafana/solana-validator-overview.json
+**Import dashboard:**
+1. Open Grafana → Dashboards → Import
+2. Upload `grafana/solana-validator-overview.json` from this repo
+3. Select your Prometheus data source when prompted
 
 ### 4. Verify Metrics
 
