@@ -158,17 +158,18 @@ prometheus --config.file=prometheus/prometheus.yml --web.listen-address=":9090"
 ```bash
 # macOS: brew install grafana && brew services start grafana
 # Linux: https://grafana.com/grafana/download
-
-# Install Infinity plugin (for block production table)
-grafana-cli plugins install yesoreyeram-infinity-datasource
-# Or via Docker: GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
-
-# Open http://localhost:3000 (default: admin/admin)
-# Add data sources:
-#   1. Prometheus: http://localhost:9090
-#   2. Infinity: http://localhost:8080 (for /blocks endpoint)
-# Import dashboard: grafana/solana-validator-overview.json
 ```
+
+**Install Infinity plugin** (required for block production table):
+1. Open http://localhost:3000 → Administration → Plugins
+2. Search "Infinity" → Click Install
+3. Restart Grafana: `brew services restart grafana`
+
+**Add data sources:**
+1. Prometheus: http://localhost:9090
+2. Infinity: URL = http://localhost:8080
+
+**Import dashboard:** grafana/solana-validator-overview.json
 
 ### 4. Verify Metrics
 
