@@ -90,6 +90,18 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Vote account balance in USD
 - Active stake value in USD
 
+### Block Production Table
+- Real-time view of your leader slots via `/blocks` endpoint
+- Last 4 completed slots with full transaction details
+- Next 4 upcoming slots with countdown
+- Per-slot metrics: votes, non-votes, fees earned, compute units used
+- Smart status detection:
+  - **Produced**: Block successfully created
+  - **Skipped**: Validator missed the slot (actual skip)
+  - **No Data**: RPC node pruned old block data
+  - **Upcoming**: Future slot not yet reached
+- Direct links to Solscan block explorer
+
 ### Network Context
 - Network TPS (transactions per second)
 - Average slot time
@@ -184,6 +196,14 @@ curl -s http://localhost:8080/metrics | grep solana_validator_skip_rate_percent
 # Query Prometheus
 curl 'http://localhost:9090/api/v1/query?query=solana_validator_skip_rate_percent'
 ```
+
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `/metrics` | Prometheus metrics in text format |
+| `/health` | Health check (returns "healthy") |
+| `/blocks` | JSON data for block production table (Grafana Infinity) |
 
 ## Metrics Reference
 
