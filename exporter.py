@@ -29,6 +29,13 @@ import httpx
 from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse
 
+# Load .env file if it exists (looks for .env in current directory)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Loads .env file automatically
+except ImportError:
+    pass  # python-dotenv not installed, use shell environment only
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
