@@ -1336,27 +1336,27 @@
                       "produced": {
                         "color": "green",
                         "index": 0,
-                        "text": "✅ Produced"
+                        "text": "\u2705 Produced"
                       },
                       "skipped": {
                         "color": "red",
                         "index": 1,
-                        "text": "❌ Skipped"
+                        "text": "\u274c Skipped"
                       },
                       "upcoming": {
                         "color": "blue",
                         "index": 2,
-                        "text": "⏳ Upcoming"
+                        "text": "\u23f3 Upcoming"
                       },
                       "no data": {
                         "color": "gray",
                         "index": 3,
-                        "text": "📦 No Data"
+                        "text": "\ud83d\udce6 No Data"
                       },
                       "error": {
                         "color": "orange",
                         "index": 4,
-                        "text": "⚠️ Error"
+                        "text": "\u26a0\ufe0f Error"
                       }
                     },
                     "type": "value"
@@ -1566,7 +1566,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 29
       },
       "id": 16,
       "options": {
@@ -1650,7 +1650,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 29
       },
       "id": 17,
       "options": {
@@ -1751,7 +1751,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 37
       },
       "id": 18,
       "options": {
@@ -1844,7 +1844,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 37
       },
       "id": 19,
       "options": {
@@ -1928,7 +1928,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 45
       },
       "id": 20,
       "options": {
@@ -2030,7 +2030,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 45
       },
       "id": 21,
       "options": {
@@ -2093,7 +2093,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 48
+        "y": 24
       },
       "id": 28,
       "options": {
@@ -2153,7 +2153,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 48
+        "y": 24
       },
       "id": 29,
       "options": {
@@ -2213,7 +2213,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 48
+        "y": 24
       },
       "id": 30,
       "options": {
@@ -2273,7 +2273,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 48
+        "y": 24
       },
       "id": 31,
       "options": {
