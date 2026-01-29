@@ -24,6 +24,8 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Real-time SOL/USD price tracking with USD-converted balances
 - Exports metrics compatible with standard alerting and visualization tools
 
+![Grafana Dashboard Preview](assets/preview.png)
+
 ## Why This Matters for Validator Operations
 
 **Performance Monitoring**: Track skip rate and block production to maintain validator reputation
