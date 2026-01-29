@@ -169,13 +169,43 @@ def detect_client_type(version_str: str) -> str:
 # BLOCK PRODUCTION DATA
 # ------------------------
 async def fetch_block_details(slot: int) -> Optional[Dict[str, Any]]:
-    """Fetch detailed block data for a specific slot"""
+    """
+    Fetch detailed block data for a specific slot.
+    Returns dict with status: "produced", "skipped", or "unavailable"
+    """
     try:
         response = await rpc_call(
             Config.RPC_URL,
             "getBlock",
             [slot, {"encoding": "json", "transactionDetails": "full", "rewards": True, "maxSupportedTransactionVersion": 0}]
         )
+
+        # Check for RPC errors
+        if "error" in response:
+            error_code = response["error"].get("code", 0)
+            error_msg = response["error"].get("message", "")
+
+            # -32009: Slot was skipped (validator actually missed it)
+            if error_code == -32009 or "skipped" in error_msg.lower():
+                return {
+                    "slot": slot,
+                    "status": "skipped",
+                    "votes": None, "non_votes": None,
+                    "fees_sol": None, "compute_units": None, "cu_percent": None,
+                    "explorer_url": f"https://solscan.io/block/{slot}"
+                }
+            # -32004: Block not available (RPC pruned the data)
+            elif error_code == -32004 or "not available" in error_msg.lower():
+                return {
+                    "slot": slot,
+                    "status": "no data",
+                    "votes": "-", "non_votes": "-",
+                    "fees_sol": "-", "compute_units": "-", "cu_percent": "-",
+                    "explorer_url": f"https://solscan.io/block/{slot}"
+                }
+            else:
+                logger.warning(f"RPC error for slot {slot}: {error_msg}")
+                return None
 
         block = extract_result(response)
         if not block:
@@ -257,11 +287,13 @@ async def fetch_leader_slots_data() -> Dict[str, Any]:
         block_results = await asyncio.gather(*[fetch_block_details(s) for s in completed])
         for slot, result in zip(completed, block_results):
             if result:
+                # fetch_block_details now returns status directly (produced/skipped/no data)
                 slots_data.append(result)
             else:
+                # Only None if unexpected error occurred
                 slots_data.append({
-                    "slot": slot, "status": "skipped", "votes": None, "non_votes": None,
-                    "fees_sol": None, "compute_units": None, "cu_percent": None,
+                    "slot": slot, "status": "error", "votes": "-", "non_votes": "-",
+                    "fees_sol": "-", "compute_units": "-", "cu_percent": "-",
                     "explorer_url": f"https://solscan.io/block/{slot}"
                 })
 

@@ -1347,6 +1347,16 @@
                         "color": "blue",
                         "index": 2,
                         "text": "⏳ Upcoming"
+                      },
+                      "no data": {
+                        "color": "gray",
+                        "index": 3,
+                        "text": "📦 No Data"
+                      },
+                      "error": {
+                        "color": "orange",
+                        "index": 4,
+                        "text": "⚠️ Error"
                       }
                     },
                     "type": "value"
