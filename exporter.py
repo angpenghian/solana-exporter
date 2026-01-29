@@ -435,11 +435,11 @@ async def fetch_epoch_fees() -> Dict[str, Any]:
             if epoch_start_slot + offset <= current_slot
         ]
 
-        # Limit to last 100 slots to avoid too many RPC calls
-        slots_to_check = our_completed_slots[-100:] if len(our_completed_slots) > 100 else our_completed_slots
+        # Limit to last 20 slots to avoid too many RPC calls
+        slots_to_check = our_completed_slots[-20:] if len(our_completed_slots) > 20 else our_completed_slots
 
-        # Fetch fees from produced blocks (sample last 20 for efficiency)
-        sample_slots = slots_to_check[-20:] if len(slots_to_check) > 20 else slots_to_check
+        # Fetch fees from produced blocks (sample last 5 to avoid rate limits)
+        sample_slots = slots_to_check[-5:] if len(slots_to_check) > 5 else slots_to_check
 
         total_fees = 0
         blocks_with_fees = 0
