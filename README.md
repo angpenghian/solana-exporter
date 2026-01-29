@@ -139,6 +139,71 @@ This exporter works with **any Solana validator client** (Agave, Jito, Firedance
 
 The implementation is **client-agnostic** and connects to any Solana RPC endpoint. Tested on Jito validators, but compatible with all implementations of the Solana RPC API specification.
 
+## Configuration
+
+### Dual RPC Architecture
+
+The exporter supports **two RPC endpoints** for optimal operation:
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `SOLANA_RPC_URL` | Main RPC for fetching metrics (vote accounts, balances, epoch info, block production) | Yes |
+| `SOLANA_LOCAL_RPC_URL` | Local validator RPC for health checks | No |
+
+**Why two endpoints?**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Your Validator Node                                              │
+│ ┌─────────────────┐                                             │
+│ │ Validator       │◄─── SOLANA_LOCAL_RPC_URL (localhost:8899)   │
+│ │ (Agave/Jito/FD) │     Used for: getHealth (node status)       │
+│ └─────────────────┘                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ SOLANA_RPC_URL (any RPC endpoint)
+                              │ Used for: getVoteAccounts, getBalance,
+                              │           getBlockProduction, getEpochInfo, etc.
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ RPC Endpoint (can be same validator, public RPC, or other node) │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Deployment scenarios:**
+
+1. **Running on validator node** (recommended):
+   ```bash
+   SOLANA_RPC_URL=http://localhost:8899      # Metrics from local validator
+   SOLANA_LOCAL_RPC_URL=http://localhost:8899  # Health check from local validator
+   ```
+
+2. **Running on separate monitoring server**:
+   ```bash
+   SOLANA_RPC_URL=https://api.mainnet-beta.solana.com  # Metrics from public RPC
+   SOLANA_LOCAL_RPC_URL=http://validator-ip:8899       # Health check from your validator
+   ```
+
+3. **Monitoring without local access** (limited):
+   ```bash
+   SOLANA_RPC_URL=https://api.mainnet-beta.solana.com  # Metrics only
+   # SOLANA_LOCAL_RPC_URL not set - health checks disabled
+   ```
+
+### Environment Variables
+
+```bash
+# Required
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com  # Main RPC endpoint
+SOLANA_IDENTITY_KEY=<validator_identity_pubkey>      # Your validator identity
+SOLANA_VOTE_KEY=<validator_vote_pubkey>              # Your vote account
+
+# Optional
+SOLANA_LOCAL_RPC_URL=http://localhost:8899  # Local RPC for health checks
+SOLANA_RPC_TIMEOUT=10.0                     # RPC timeout in seconds
+SOLANA_MAX_CONNECTIONS=20                   # Max concurrent connections
+```
+
 ## Quick Start
 
 ### Prerequisites
