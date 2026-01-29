@@ -318,6 +318,176 @@ async def fetch_leader_slots_data() -> Dict[str, Any]:
         "slots": upcoming_data + completed_data
     }
 
+async def fetch_inflation_rewards() -> Dict[str, Any]:
+    """
+    Fetch inflation rewards for the vote account.
+    Returns rewards for current epoch and previous epoch.
+    """
+    if not Config.VOTE_KEY:
+        return {"current_epoch": None, "previous_epoch": None}
+
+    try:
+        # Get current epoch info first
+        epoch_resp = await rpc_call(Config.RPC_URL, "getEpochInfo", [{"commitment": "finalized"}])
+        epoch_info = extract_result(epoch_resp) or {}
+        current_epoch = epoch_info.get("epoch", 0)
+
+        # Fetch rewards for previous epoch (current epoch rewards aren't finalized yet)
+        rewards_resp = await rpc_call(
+            Config.RPC_URL,
+            "getInflationReward",
+            [[Config.VOTE_KEY], {"epoch": current_epoch - 1}]
+        )
+        rewards = extract_result(rewards_resp)
+
+        prev_reward = None
+        if rewards and len(rewards) > 0 and rewards[0]:
+            reward_data = rewards[0]
+            prev_reward = {
+                "epoch": reward_data.get("epoch", current_epoch - 1),
+                "amount_lamports": reward_data.get("amount", 0),
+                "amount_sol": reward_data.get("amount", 0) / 1_000_000_000,
+                "post_balance_lamports": reward_data.get("postBalance", 0),
+                "commission": reward_data.get("commission"),
+                "effective_slot": reward_data.get("effectiveSlot", 0)
+            }
+
+        # Also try to get epoch before that for comparison
+        rewards_resp_2 = await rpc_call(
+            Config.RPC_URL,
+            "getInflationReward",
+            [[Config.VOTE_KEY], {"epoch": current_epoch - 2}]
+        )
+        rewards_2 = extract_result(rewards_resp_2)
+
+        prev_prev_reward = None
+        if rewards_2 and len(rewards_2) > 0 and rewards_2[0]:
+            reward_data = rewards_2[0]
+            prev_prev_reward = {
+                "epoch": reward_data.get("epoch", current_epoch - 2),
+                "amount_lamports": reward_data.get("amount", 0),
+                "amount_sol": reward_data.get("amount", 0) / 1_000_000_000,
+            }
+
+        return {
+            "current_epoch": current_epoch,
+            "last_epoch_reward": prev_reward,
+            "prev_epoch_reward": prev_prev_reward
+        }
+    except Exception as e:
+        logger.warning(f"Failed to fetch inflation rewards: {e}")
+        return {"current_epoch": None, "last_epoch_reward": None, "prev_epoch_reward": None}
+
+
+async def fetch_epoch_fees() -> Dict[str, Any]:
+    """
+    Calculate total fees earned from all blocks produced this epoch.
+    Uses getBlockProduction to get slot range, then fetches block data.
+    """
+    if not Config.IDENTITY_KEY:
+        return {"total_fees_sol": 0, "blocks_with_fees": 0}
+
+    try:
+        # Get block production data with slot range
+        block_prod_resp = await rpc_call(
+            Config.RPC_URL,
+            "getBlockProduction",
+            [{"commitment": "finalized", "identity": Config.IDENTITY_KEY}]
+        )
+        block_prod = extract_result(block_prod_resp)
+
+        if not block_prod or "value" not in block_prod:
+            return {"total_fees_sol": 0, "blocks_with_fees": 0}
+
+        value = block_prod["value"]
+        by_identity = value.get("byIdentity", {})
+
+        if Config.IDENTITY_KEY not in by_identity:
+            return {"total_fees_sol": 0, "blocks_with_fees": 0}
+
+        # Get the slot range for this epoch's block production
+        slot_range = value.get("range", {})
+        first_slot = slot_range.get("firstSlot", 0)
+        last_slot = slot_range.get("lastSlot", 0)
+
+        # Get our produced slots from leader schedule
+        leader_schedule_resp = await rpc_call(
+            Config.RPC_URL,
+            "getLeaderSchedule",
+            [None, {"commitment": "finalized", "identity": Config.IDENTITY_KEY}]
+        )
+        leader_schedule = extract_result(leader_schedule_resp) or {}
+        our_slot_offsets = leader_schedule.get(Config.IDENTITY_KEY, [])
+
+        if not our_slot_offsets:
+            return {"total_fees_sol": 0, "blocks_with_fees": 0}
+
+        # Get epoch info to calculate absolute slots
+        epoch_resp = await rpc_call(Config.RPC_URL, "getEpochInfo", [{"commitment": "finalized"}])
+        epoch_info = extract_result(epoch_resp) or {}
+        epoch_start_slot = epoch_info.get("absoluteSlot", 0) - epoch_info.get("slotIndex", 0)
+        current_slot = epoch_info.get("absoluteSlot", 0)
+
+        # Calculate absolute slots we've already passed
+        our_completed_slots = [
+            epoch_start_slot + offset
+            for offset in our_slot_offsets
+            if epoch_start_slot + offset <= current_slot
+        ]
+
+        # Limit to last 100 slots to avoid too many RPC calls
+        slots_to_check = our_completed_slots[-100:] if len(our_completed_slots) > 100 else our_completed_slots
+
+        # Fetch fees from produced blocks (sample last 20 for efficiency)
+        sample_slots = slots_to_check[-20:] if len(slots_to_check) > 20 else slots_to_check
+
+        total_fees = 0
+        blocks_with_fees = 0
+
+        async def get_block_fees(slot):
+            try:
+                resp = await rpc_call(
+                    Config.RPC_URL,
+                    "getBlock",
+                    [slot, {"encoding": "json", "transactionDetails": "full", "rewards": False, "maxSupportedTransactionVersion": 0}]
+                )
+                block = extract_result(resp)
+                if block:
+                    fees = sum(tx.get("meta", {}).get("fee", 0) for tx in block.get("transactions", []))
+                    return fees
+                return 0
+            except:
+                return 0
+
+        # Fetch fees concurrently
+        fee_results = await asyncio.gather(*[get_block_fees(s) for s in sample_slots])
+
+        for fees in fee_results:
+            if fees > 0:
+                total_fees += fees
+                blocks_with_fees += 1
+
+        # Extrapolate to full epoch if we sampled
+        total_completed = len(our_completed_slots)
+        sampled = len(sample_slots)
+        if sampled > 0 and total_completed > sampled:
+            avg_fees_per_block = total_fees / sampled
+            estimated_total = avg_fees_per_block * total_completed
+        else:
+            estimated_total = total_fees
+
+        return {
+            "total_fees_sol": round(estimated_total / 1_000_000_000, 6),
+            "sampled_fees_sol": round(total_fees / 1_000_000_000, 6),
+            "blocks_sampled": sampled,
+            "blocks_completed": total_completed,
+            "avg_fee_per_block_sol": round((total_fees / sampled / 1_000_000_000), 6) if sampled > 0 else 0
+        }
+    except Exception as e:
+        logger.warning(f"Failed to fetch epoch fees: {e}")
+        return {"total_fees_sol": 0, "blocks_with_fees": 0}
+
+
 # ------------------------
 # METRICS COLLECTION
 # ------------------------
@@ -371,9 +541,15 @@ async def fetch_all_metrics() -> Dict[str, Any]:
         )
         call_names.append("block_production")
 
-    # Execute all RPC calls + SOL price fetch concurrently
+    # Execute all RPC calls + SOL price fetch + inflation rewards + epoch fees concurrently
     rpc_calls.append(fetch_sol_price())
     call_names.append("sol_price")
+
+    rpc_calls.append(fetch_inflation_rewards())
+    call_names.append("inflation_rewards")
+
+    rpc_calls.append(fetch_epoch_fees())
+    call_names.append("epoch_fees")
 
     results = await asyncio.gather(*rpc_calls, return_exceptions=True)
 
@@ -383,8 +559,8 @@ async def fetch_all_metrics() -> Dict[str, Any]:
         if isinstance(result, Exception):
             logger.error(f"Exception fetching {name}: {result}")
             metrics[name] = None
-        elif name == "sol_price":
-            # sol_price returns a float directly, not an RPC response
+        elif name in ("sol_price", "inflation_rewards", "epoch_fees"):
+            # These return values directly, not RPC responses
             metrics[name] = result
         else:
             metrics[name] = extract_result(result)
@@ -576,6 +752,57 @@ def format_prometheus_metrics(data: Dict[str, Any]) -> str:
             if current and len(current) > 0:
                 stake_sol = current[0].get("activatedStake", 0) / 1_000_000_000
                 add_metric("solana_validator_activated_stake_usd", stake_sol * sol_price, "Active stake in USD")
+
+    # ============================================
+    # INFLATION REWARDS
+    # ============================================
+    if data.get("inflation_rewards"):
+        rewards = data["inflation_rewards"]
+        current_epoch = rewards.get("current_epoch")
+
+        if current_epoch:
+            add_metric("solana_validator_current_epoch", current_epoch, "Current epoch number")
+
+        last_reward = rewards.get("last_epoch_reward")
+        if last_reward:
+            add_metric("solana_validator_last_epoch_reward_sol", last_reward["amount_sol"],
+                      "Inflation reward earned last epoch (SOL)")
+            add_metric("solana_validator_last_epoch_reward_epoch", last_reward["epoch"],
+                      "Epoch number for last reward")
+
+            # Add USD value if SOL price available
+            sol_price = data.get("sol_price")
+            if sol_price:
+                add_metric("solana_validator_last_epoch_reward_usd", last_reward["amount_sol"] * sol_price,
+                          "Inflation reward earned last epoch (USD)")
+
+        prev_reward = rewards.get("prev_epoch_reward")
+        if prev_reward:
+            add_metric("solana_validator_prev_epoch_reward_sol", prev_reward["amount_sol"],
+                      "Inflation reward earned 2 epochs ago (SOL)")
+
+    # ============================================
+    # EPOCH FEES (Transaction Fees Earned)
+    # ============================================
+    if data.get("epoch_fees"):
+        fees = data["epoch_fees"]
+        total_fees = fees.get("total_fees_sol", 0)
+        add_metric("solana_validator_epoch_fees_total_sol", total_fees,
+                  "Estimated total transaction fees earned this epoch (SOL)")
+
+        avg_fee = fees.get("avg_fee_per_block_sol", 0)
+        add_metric("solana_validator_avg_fee_per_block_sol", avg_fee,
+                  "Average transaction fee per block (SOL)")
+
+        blocks_completed = fees.get("blocks_completed", 0)
+        add_metric("solana_validator_blocks_completed_epoch", blocks_completed,
+                  "Number of blocks completed this epoch")
+
+        # Add USD value if SOL price available
+        sol_price = data.get("sol_price")
+        if sol_price and total_fees > 0:
+            add_metric("solana_validator_epoch_fees_total_usd", total_fees * sol_price,
+                      "Estimated total transaction fees earned this epoch (USD)")
 
     # ============================================
     # EXPORTER METADATA

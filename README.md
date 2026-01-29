@@ -20,7 +20,7 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Exposes 30+ validator metrics in Prometheus format
 - Calculates skip rate efficiently via `getBlockProduction` API (avoiding slow per-block polling)
 - Provides async RPC calls for sub-second scrape times
-- Includes production-ready Grafana dashboard with 27 panels
+- Includes production-ready Grafana dashboard with 31 panels
 - Real-time SOL/USD price tracking with USD-converted balances
 - Exports metrics compatible with standard alerting and visualization tools
 
@@ -64,7 +64,7 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Grafana (Visualization)                                      │
-│ • Port 3000   • 27-panel dashboard   • Color-coded alerts    │
+│ • Port 3000   • 31-panel dashboard   • Color-coded alerts    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -89,6 +89,12 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Identity balance in USD
 - Vote account balance in USD
 - Active stake value in USD
+
+### Inflation Rewards & Epoch Fees
+- **Inflation Rewards**: SOL earned from staking rewards each epoch (via `getInflationReward`)
+- **Transaction Fees**: Total fees earned from blocks you produced this epoch
+- Both displayed in SOL and USD
+- Historical comparison (current vs previous epoch rewards)
 
 ### Block Production Table
 - Real-time view of your leader slots via `/blocks` endpoint
@@ -243,6 +249,17 @@ curl 'http://localhost:9090/api/v1/query?query=solana_validator_skip_rate_percen
 | `solana_validator_vote_balance_usd` | Vote balance in USD |
 | `solana_validator_activated_stake_usd` | Active stake in USD |
 
+### Rewards & Fees Metrics
+
+| Metric | Description |
+|--------|-------------|
+| `solana_validator_last_epoch_reward_sol` | Inflation reward earned last epoch (SOL) |
+| `solana_validator_last_epoch_reward_usd` | Inflation reward earned last epoch (USD) |
+| `solana_validator_prev_epoch_reward_sol` | Inflation reward earned 2 epochs ago (SOL) |
+| `solana_validator_epoch_fees_total_sol` | Total transaction fees earned this epoch (SOL) |
+| `solana_validator_epoch_fees_total_usd` | Total transaction fees earned this epoch (USD) |
+| `solana_validator_avg_fee_per_block_sol` | Average fee per block produced (SOL) |
+
 ### Node & Network Metrics
 
 | Metric | Description |
@@ -269,7 +286,7 @@ solana-exporter/
 ├── prometheus/
 │   └── prometheus.yml                 # Prometheus scrape config
 ├── grafana/
-│   └── solana-validator-overview.json # Production dashboard (27 panels)
+│   └── solana-validator-overview.json # Production dashboard (31 panels)
 └── docs/                              # Detailed guides (gitignored)
     ├── QUICKSTART.md
     ├── GRAFANA_SETUP.md
@@ -400,14 +417,15 @@ Automated test suite validates all critical functionality:
 
 - [ ] Docker Compose for single-command deployment
 - [ ] Multi-validator fleet monitoring
-- [ ] Inflation rewards tracking (via `getInflationReward`)
-- [ ] Priority fee rewards tracking
 - [ ] SLO dashboard (uptime, performance targets)
 - [ ] Alert routing integrations (PagerDuty, Slack)
 - [x] Skip rate calculation
 - [x] Delinquency monitoring
 - [x] Grafana dashboard
 - [x] Automated test suite
+- [x] Inflation rewards tracking (via `getInflationReward`)
+- [x] Transaction fee tracking (priority fees included)
+- [x] Block production table with leader slot details
 
 ## References
 
