@@ -95,12 +95,17 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Last 4 completed slots with full transaction details
 - Next 4 upcoming slots with countdown
 - Per-slot metrics: votes, non-votes, fees earned, compute units used
-- Smart status detection:
-  - **Produced**: Block successfully created
-  - **Skipped**: Validator missed the slot (actual skip)
-  - **No Data**: RPC node pruned old block data
-  - **Upcoming**: Future slot not yet reached
 - Direct links to Solscan block explorer
+
+**Block Status Legend:**
+
+| Status | Color | Description |
+|--------|-------|-------------|
+| ✅ Produced | Green | Block successfully created by your validator |
+| ❌ Skipped | Red | Validator missed the slot (actual skip, impacts skip rate) |
+| 📦 No Data | Gray | RPC node pruned old block data (not a skip) |
+| ⏳ Upcoming | Blue | Future slot not yet reached |
+| ⚠️ Error | Orange | RPC error fetching block data |
 
 ### Network Context
 - Network TPS (transactions per second)
