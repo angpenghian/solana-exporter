@@ -591,6 +591,9 @@
       },
       "id": 7,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -599,8 +602,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -614,7 +616,7 @@
         }
       ],
       "title": "Identity Balance",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -657,6 +659,9 @@
       },
       "id": 8,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -665,8 +670,7 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "textMode": "value"
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -680,7 +684,7 @@
         }
       ],
       "title": "Vote Account Balance",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
