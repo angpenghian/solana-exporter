@@ -27,6 +27,7 @@ from datetime import datetime
 
 import httpx
 from fastapi import FastAPI, Response
+from fastapi.responses import JSONResponse
 
 # Configure logging
 logging.basicConfig(
@@ -163,6 +164,127 @@ def detect_client_type(version_str: str) -> str:
         return "Firedancer"
     else:
         return "Agave"
+
+# ------------------------
+# BLOCK PRODUCTION DATA
+# ------------------------
+async def fetch_block_details(slot: int) -> Optional[Dict[str, Any]]:
+    """Fetch detailed block data for a specific slot"""
+    try:
+        response = await rpc_call(
+            Config.RPC_URL,
+            "getBlock",
+            [slot, {"encoding": "json", "transactionDetails": "full", "rewards": True, "maxSupportedTransactionVersion": 0}]
+        )
+
+        block = extract_result(response)
+        if not block:
+            return None
+
+        transactions = block.get("transactions", [])
+        votes = 0
+        non_votes = 0
+        total_fees = 0
+        total_cu = 0
+
+        VOTE_PROGRAM = "Vote111111111111111111111111111111111111111"
+
+        for tx in transactions:
+            meta = tx.get("meta", {})
+            total_fees += meta.get("fee", 0)
+            total_cu += meta.get("computeUnitsConsumed", 0)
+
+            message = tx.get("transaction", {}).get("message", {})
+            account_keys = message.get("accountKeys", []) or message.get("staticAccountKeys", [])
+
+            if VOTE_PROGRAM in account_keys:
+                votes += 1
+            else:
+                non_votes += 1
+
+        return {
+            "slot": slot,
+            "status": "produced",
+            "votes": votes,
+            "non_votes": non_votes,
+            "fees_sol": round(total_fees / 1_000_000_000, 6),
+            "compute_units": total_cu,
+            "cu_percent": round((total_cu / 48_000_000 * 100), 1) if total_cu > 0 else 0,
+            "explorer_url": f"https://solscan.io/block/{slot}"
+        }
+    except Exception as e:
+        logger.warning(f"Failed to fetch block {slot}: {e}")
+        return None
+
+async def fetch_leader_slots_data() -> Dict[str, Any]:
+    """
+    Fetch last 4 completed slots and next 4 upcoming slots with countdown.
+    Returns data for Grafana Infinity plugin table.
+    """
+    if not Config.IDENTITY_KEY:
+        return {"error": "IDENTITY_KEY not configured", "slots": []}
+
+    # Fetch current slot, epoch info, and leader schedule
+    current_slot_resp, epoch_resp, leader_schedule_resp = await asyncio.gather(
+        rpc_call(Config.RPC_URL, "getSlot", [{"commitment": "finalized"}]),
+        rpc_call(Config.RPC_URL, "getEpochInfo", [{"commitment": "finalized"}]),
+        rpc_call(Config.RPC_URL, "getLeaderSchedule", [None, {"commitment": "finalized", "identity": Config.IDENTITY_KEY}])
+    )
+
+    current_slot = extract_result(current_slot_resp) or 0
+    epoch_info = extract_result(epoch_resp) or {}
+    leader_schedule = extract_result(leader_schedule_resp) or {}
+
+    our_slots = leader_schedule.get(Config.IDENTITY_KEY, [])
+    if not our_slots:
+        return {"current_slot": current_slot, "slots": [], "next_leader_in": None}
+
+    # Calculate absolute slot numbers
+    epoch_start_slot = epoch_info.get("absoluteSlot", 0) - epoch_info.get("slotIndex", 0)
+    absolute_slots = sorted([epoch_start_slot + s for s in our_slots])
+
+    # Split into completed and upcoming
+    completed = [s for s in absolute_slots if s <= current_slot][-4:]  # Last 4
+    upcoming = [s for s in absolute_slots if s > current_slot][:4]     # Next 4
+
+    # Calculate countdown to next leader slot
+    next_leader_in = (upcoming[0] - current_slot) if upcoming else None
+
+    # Fetch details for completed slots concurrently
+    slots_data = []
+
+    if completed:
+        block_results = await asyncio.gather(*[fetch_block_details(s) for s in completed])
+        for slot, result in zip(completed, block_results):
+            if result:
+                slots_data.append(result)
+            else:
+                slots_data.append({
+                    "slot": slot, "status": "skipped", "votes": None, "non_votes": None,
+                    "fees_sol": None, "compute_units": None, "cu_percent": None,
+                    "explorer_url": f"https://solscan.io/block/{slot}"
+                })
+
+    # Add upcoming slots
+    for s in upcoming:
+        slots_data.append({
+            "slot": s, "status": "upcoming", "votes": "-", "non_votes": "-",
+            "fees_sol": "-", "compute_units": "-", "cu_percent": "-",
+            "explorer_url": None
+        })
+
+    # Sort: upcoming first (by slot desc), then completed (by slot desc)
+    upcoming_data = [s for s in slots_data if s["status"] == "upcoming"]
+    completed_data = [s for s in slots_data if s["status"] != "upcoming"]
+    upcoming_data.sort(key=lambda x: x["slot"], reverse=True)
+    completed_data.sort(key=lambda x: x["slot"], reverse=True)
+
+    return {
+        "current_slot": current_slot,
+        "next_leader_slot": upcoming[0] if upcoming else None,
+        "next_leader_in": next_leader_in,
+        "slots": upcoming_data + completed_data
+    }
 
 # ------------------------
 # METRICS COLLECTION
@@ -487,6 +609,23 @@ async def metrics():
         return Response(
             content=f"# Error generating metrics: {str(e)}\n",
             media_type="text/plain; charset=utf-8",
+            status_code=500
+        )
+
+@app.get("/blocks")
+async def blocks():
+    """
+    Block production endpoint for Grafana Infinity plugin
+
+    Returns JSON with upcoming and completed leader slots
+    """
+    try:
+        data = await fetch_leader_slots_data()
+        return JSONResponse(content=data)
+    except Exception as e:
+        logger.error(f"Error fetching block data: {e}", exc_info=True)
+        return JSONResponse(
+            content={"error": str(e)},
             status_code=500
         )
 

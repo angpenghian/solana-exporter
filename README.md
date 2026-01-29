@@ -20,7 +20,7 @@ Without proper instrumentation, validators can become delinquent or underperform
 - Exposes 30+ validator metrics in Prometheus format
 - Calculates skip rate efficiently via `getBlockProduction` API (avoiding slow per-block polling)
 - Provides async RPC calls for sub-second scrape times
-- Includes production-ready Grafana dashboard with 26 panels
+- Includes production-ready Grafana dashboard with 27 panels
 - Real-time SOL/USD price tracking with USD-converted balances
 - Exports metrics compatible with standard alerting and visualization tools
 
@@ -49,7 +49,7 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Python Exporter (FastAPI)                                    │
-│ • Port 8080   • /metrics endpoint   • ~0.26s scrape time     │
+│ • Port 8080   • /metrics + /blocks   • ~0.26s scrape time    │
 │ • 30+ metrics   • Environment config   • Error handling      │
 └─────────────────────────┬────────────────────────────────────┘
                           │
@@ -64,7 +64,7 @@ Without proper instrumentation, validators can become delinquent or underperform
                           ▼
 ┌──────────────────────────────────────────────────────────────┐
 │ Grafana (Visualization)                                      │
-│ • Port 3000   • 26-panel dashboard   • Color-coded alerts    │
+│ • Port 3000   • 27-panel dashboard   • Color-coded alerts    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -159,8 +159,14 @@ prometheus --config.file=prometheus/prometheus.yml --web.listen-address=":9090"
 # macOS: brew install grafana && brew services start grafana
 # Linux: https://grafana.com/grafana/download
 
+# Install Infinity plugin (for block production table)
+grafana-cli plugins install yesoreyeram-infinity-datasource
+# Or via Docker: GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+
 # Open http://localhost:3000 (default: admin/admin)
-# Add Prometheus data source: http://localhost:9090
+# Add data sources:
+#   1. Prometheus: http://localhost:9090
+#   2. Infinity: http://localhost:8080 (for /blocks endpoint)
 # Import dashboard: grafana/solana-validator-overview.json
 ```
 
@@ -237,7 +243,7 @@ solana-exporter/
 ├── prometheus/
 │   └── prometheus.yml                 # Prometheus scrape config
 ├── grafana/
-│   └── solana-validator-overview.json # Production dashboard (26 panels)
+│   └── solana-validator-overview.json # Production dashboard (27 panels)
 └── docs/                              # Detailed guides (gitignored)
     ├── QUICKSTART.md
     ├── GRAFANA_SETUP.md

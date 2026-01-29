@@ -1292,6 +1292,201 @@
     },
     {
       "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${infinity}"
+      },
+      "description": "Block production details for your leader slots. Shows last 4 completed and next 4 upcoming slots.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "produced": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "✅ Produced"
+                      },
+                      "skipped": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "❌ Skipped"
+                      },
+                      "upcoming": {
+                        "color": "blue",
+                        "index": 2,
+                        "text": "⏳ Upcoming"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "explorer_url"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View on Solscan",
+                    "url": "${__data.fields.explorer_url}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "displayName",
+                "value": "Explorer"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cu_percent"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "displayName",
+                "value": "CU %"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "fees_sol"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Fees (SOL)"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 27,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "enablePagination": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "columns": [],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${infinity}"
+          },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "",
+          "refId": "A",
+          "root_selector": "$.slots[*]",
+          "source": "url",
+          "type": "json",
+          "url": "http://localhost:8080/blocks",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Block Production (Last 4 + Next 4 Leader Slots)",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "compute_units": true
+            },
+            "indexByName": {
+              "slot": 0,
+              "status": 1,
+              "votes": 2,
+              "non_votes": 3,
+              "fees_sol": 4,
+              "cu_percent": 5,
+              "explorer_url": 6
+            },
+            "renameByName": {
+              "non_votes": "Non-votes",
+              "slot": "Slot",
+              "status": "Status",
+              "votes": "Votes"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
@@ -1357,7 +1552,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 24
       },
       "id": 16,
       "options": {
@@ -1441,7 +1636,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 24
       },
       "id": 17,
       "options": {
@@ -1542,7 +1737,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "id": 18,
       "options": {
@@ -1635,7 +1830,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 24
+        "y": 32
       },
       "id": 19,
       "options": {
@@ -1719,7 +1914,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 40
       },
       "id": 20,
       "options": {
@@ -1821,7 +2016,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 40
       },
       "id": 21,
       "options": {
@@ -1880,6 +2075,24 @@
         "name": "datasource",
         "options": [],
         "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Infinity",
+          "value": "Infinity"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Infinity",
+        "multi": false,
+        "name": "infinity",
+        "options": [],
+        "query": "yesoreyeram-infinity-datasource",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
